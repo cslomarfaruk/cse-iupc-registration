@@ -1,0 +1,79 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Event {
+  id             Int              @id @default(autoincrement())
+  title          String
+  slug           String           @unique
+  description    String
+  prizeMoney     String
+  fee            String
+  venue          String
+  startDate      DateTime
+  endDate        DateTime
+  rules          Rule[]
+  image          String
+  registrations  Registration[]
+  organizers     EventOrganizer[] 
+}
+
+model Organizer {
+  id        Int             @id @default(autoincrement())
+  name      String
+  type      OrganizerType
+  events    EventOrganizer[] 
+}
+
+model EventOrganizer {
+  id          Int       @id @default(autoincrement())
+  event       Event     @relation(fields: [eventId], references: [id])
+  eventId     Int
+  organizer   Organizer @relation(fields: [organizerId], references: [id])
+  organizerId Int
+
+  @@unique([eventId, organizerId]) 
+}
+
+enum OrganizerType {
+  INSTITUTION
+  TEAM
+  GROUP
+  INDIVIDUAL
+}
+
+model Rule {
+  id      Int    @id @default(autoincrement())
+  text    String
+  event   Event  @relation(fields: [eventId], references: [id])
+  eventId Int
+}
+
+model Registration {
+  id        Int       @id @default(autoincrement())
+  eventId   Int
+  event     Event     @relation(fields: [eventId], references: [id])
+  teamName  String
+  members   Member[]
+  email     String
+  phone     String
+  createdAt DateTime  @default(now())
+}
+
+model Member {
+  id             Int          @id @default(autoincrement())
+  name           String
+  registration   Registration @relation(fields: [registrationId], references: [id])
+  registrationId Int
+}
+
+model Admin {
+  id       Int    @id @default(autoincrement())
+  username String @unique
+  password String
+}
